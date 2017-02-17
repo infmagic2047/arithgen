@@ -1,136 +1,96 @@
-import unittest
-
 from fractions import Fraction
 
-from arithgen.expr import (
-    Integer,
-    Addition,
-    Subtraction,
-    Multiplication,
-    Division,
-)
+from arithgen import expr
 
 
-class TestExprEvaluation(unittest.TestCase):
-    def test_integer(self):
-        expr = Integer(9)
-        self.assertEqual(expr.evaluate(), 9)
+def test_integer():
+    e = expr.Integer(9)
+    assert e.evaluate() == 9
 
-    def test_addition(self):
-        expr = Addition(Integer(5), Integer(6))
-        self.assertEqual(expr.evaluate(), 11)
 
-    def test_subtraction(self):
-        expr = Subtraction(Integer(4), Integer(7))
-        self.assertEqual(expr.evaluate(), -3)
+def test_addition():
+    e = expr.Addition(expr.Integer(5), expr.Integer(6))
+    assert e.evaluate() == 11
 
-    def test_multiplication(self):
-        expr = Multiplication(Integer(3), Integer(8))
-        self.assertEqual(expr.evaluate(), 24)
 
-    def test_division(self):
-        expr = Division(Integer(8), Integer(6))
-        self.assertEqual(expr.evaluate(), Fraction(4, 3))
+def test_subtraction():
+    e = expr.Subtraction(expr.Integer(4), expr.Integer(7))
+    assert e.evaluate() == -3
 
-    def test_compound(self):
-        expr = Division(
-            Addition(
-                Integer(4),
-                Division(Integer(2), Integer(5)),
+
+def test_multiplication():
+    e = expr.Multiplication(expr.Integer(3), expr.Integer(8))
+    assert e.evaluate() == 24
+
+
+def test_division():
+    e = expr.Division(expr.Integer(8), expr.Integer(6))
+    assert e.evaluate() == Fraction(4, 3)
+
+
+def test_compound():
+    e = expr.Division(
+        expr.Addition(
+            expr.Integer(4),
+            expr.Division(expr.Integer(2), expr.Integer(5)),
+        ),
+        expr.Multiplication(
+            expr.Subtraction(
+                expr.Multiplication(expr.Integer(2), expr.Integer(4)),
+                expr.Division(expr.Integer(6), expr.Integer(5)),
             ),
-            Multiplication(
-                Subtraction(
-                    Multiplication(Integer(2), Integer(4)),
-                    Division(Integer(6), Integer(5)),
-                ),
-                Addition(
-                    Division(Integer(3), Integer(2)),
-                    Division(Integer(4), Integer(3)),
-                ),
+            expr.Addition(
+                expr.Division(expr.Integer(3), expr.Integer(2)),
+                expr.Division(expr.Integer(4), expr.Integer(3)),
             ),
-        )
-        self.assertEqual(expr.evaluate(), Fraction(66, 289))
+        ),
+    )
+    assert e.evaluate() == Fraction(66, 289)
 
 
-class TestExprConvertToString(unittest.TestCase):
-    def test_infix(self):
-        expr = Addition(
-            Subtraction(
-                Division(
-                    Multiplication(
-                        Integer(3),
-                        Integer(4),
-                    ),
-                    Multiplication(
-                        Integer(2),
-                        Integer(6),
-                    ),
-                ),
-                Division(
-                    Integer(3),
-                    Addition(
-                        Integer(5),
-                        Integer(6),
-                    ),
-                ),
+def test_string_infix():
+    e = expr.Addition(
+        expr.Subtraction(
+            expr.Division(
+                expr.Multiplication(expr.Integer(3), expr.Integer(4)),
+                expr.Multiplication(expr.Integer(2), expr.Integer(6)),
             ),
-            Multiplication(
-                Subtraction(
-                    Addition(
-                        Integer(4),
-                        Integer(2),
-                    ),
-                    Subtraction(
-                        Integer(2),
-                        Integer(1),
-                    ),
-                ),
-                Integer(6),
+            expr.Division(
+                expr.Integer(3),
+                expr.Addition(expr.Integer(5), expr.Integer(6)),
             ),
-        )
-        self.assertEqual(expr.to_string(),
-                         '3 * 4 / (2 * 6) - 3 / (5 + 6) + '
-                         '(4 + 2 - (2 - 1)) * 6')
-
-    def test_reverse_polish(self):
-        expr = Addition(
-            Subtraction(
-                Division(
-                    Multiplication(
-                        Integer(3),
-                        Integer(4),
-                    ),
-                    Multiplication(
-                        Integer(2),
-                        Integer(6),
-                    ),
-                ),
-                Division(
-                    Integer(3),
-                    Addition(
-                        Integer(5),
-                        Integer(6),
-                    ),
-                ),
+        ),
+        expr.Multiplication(
+            expr.Subtraction(
+                expr.Addition(expr.Integer(4), expr.Integer(2)),
+                expr.Subtraction(expr.Integer(2), expr.Integer(1)),
             ),
-            Multiplication(
-                Subtraction(
-                    Addition(
-                        Integer(4),
-                        Integer(2),
-                    ),
-                    Subtraction(
-                        Integer(2),
-                        Integer(1),
-                    ),
-                ),
-                Integer(6),
-            ),
-        )
-        self.assertEqual(expr.to_reverse_polish(),
-                         '3 4 * 2 6 * / 3 5 6 + / - '
-                         '4 2 + 2 1 - - 6 * +')
+            expr.Integer(6),
+        ),
+    )
+    assert (e.to_string() ==
+            '3 * 4 / (2 * 6) - 3 / (5 + 6) + (4 + 2 - (2 - 1)) * 6')
 
 
-if __name__ == '__main__':
-    unittest.main()
+def test_string_reverse_polish():
+    e = expr.Addition(
+        expr.Subtraction(
+            expr.Division(
+                expr.Multiplication(expr.Integer(3), expr.Integer(4)),
+                expr.Multiplication(expr.Integer(2), expr.Integer(6)),
+            ),
+            expr.Division(
+                expr.Integer(3),
+                expr.Addition(expr.Integer(5), expr.Integer(6)),
+            ),
+        ),
+        expr.Multiplication(
+            expr.Subtraction(
+                expr.Addition(expr.Integer(4), expr.Integer(2)),
+                expr.Subtraction(expr.Integer(2), expr.Integer(1)),
+            ),
+            expr.Integer(6),
+        ),
+    )
+    assert (e.to_reverse_polish() ==
+            '3 4 * 2 6 * / 3 5 6 + / - 4 2 + 2 1 - - 6 * +')

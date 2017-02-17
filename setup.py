@@ -45,6 +45,5 @@ setup(
             'arithgen-quiz = arithgen.quiz:main',
         ],
     },
-    test_suite='tests',
     zip_safe=True,
 )
