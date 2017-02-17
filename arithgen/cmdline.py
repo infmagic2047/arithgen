@@ -1,48 +1,39 @@
-"""Command line program for arithgen."""
+"""Arithmetic expression generator.
 
-import argparse
+Usage:
+    arithgen [options]
+    arithgen --help
+    arithgen --version
+
+Options:
+    -n, --count=<count>            Specify how many expressions to
+                                   generate. [default: 1]
+    -d, --difficulty=<difficulty>  Specify the complexity of
+                                   expressions. [default: 3]
+    -F, --format=<format>          Specify the output format.
+                                   [default: {expr} = {result}]
+
+"""
+
 import sys
+
+from docopt import docopt
 
 from arithgen import __version__
 from arithgen.generator import generate
 
 
-def parse_args(argv):
-    """Parse command line arguments for arithgen."""
-    parser = argparse.ArgumentParser(
-        prog='arithgen',
-        description='Arithmetic expression generator',
-        formatter_class=argparse.ArgumentDefaultsHelpFormatter,
-        add_help=False,
-    )
-    parser.add_argument(
-        '-h', '--help', action='help',
-        help='Show this help message and exit.',
-    )
-    parser.add_argument(
-        '-V', '--version', action='version',
-        version='%(prog)s ' + __version__,
-        help="Show program's version number and exit.",
-    )
-    parser.add_argument(
-        '-n', '--count', type=int, default=1,
-        help='Specify how many expressions to generate.',
-    )
-    parser.add_argument(
-        '-d', '--difficulty', type=int, default=3,
-        help='Specify complexity of expressions.',
-    )
-    parser.add_argument(
-        '-F', '--format', default='{expr} = {result}',
-        help='Specify output format.',
-    )
-    return parser.parse_args(argv)
-
-
 def main(argv=None):
     if argv is None:
         argv = sys.argv[1:]
-    args = parse_args(argv)
-    for _ in range(args.count):
-        expr, result = generate(difficulty=args.difficulty)
-        print(args.format.format(expr=expr, result=result))
+    args = docopt(__doc__, argv=argv,
+                  version='arithgen ' + __version__)
+    try:
+        count = int(args['--count'])
+        difficulty = int(args['--difficulty'])
+    except ValueError:
+        print('Invalid arguments')
+        return 1
+    for _ in range(count):
+        expr, result = generate(difficulty=difficulty)
+        print(args['--format'].format(expr=expr, result=result))

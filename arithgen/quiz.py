@@ -1,6 +1,24 @@
-"""Quiz mode command line interface for arithgen."""
+"""Quiz mode of arithgen.
 
-import argparse
+Usage:
+    arithgen-quiz [options]
+    arithgen-quiz --help
+    arithgen-quiz --version
+
+Options:
+    -d, --difficulty=<difficulty>  Specify the complexity of
+                                   expressions. [default: 3]
+    -F, --format=<format>          Specify the output format.
+                                   [default: {expr}]
+    -r, --strict                   Only accept answer with an integer or
+                                   a fraction in the form of a/b with
+                                   gcd(a, b) == 1 and b > 1. By default
+                                   anything accepted by Fraction
+                                   constructor is OK.
+    -s, --silent                   Suppress summary information output.
+
+"""
+
 import collections
 import os
 import re
@@ -8,6 +26,7 @@ import sys
 from fractions import Fraction, gcd
 
 import yaml
+from docopt import docopt
 
 from arithgen import __version__
 from arithgen.generator import generate
@@ -21,44 +40,6 @@ def update_recursive(orig_dict, new_dict):
             update_recursive(orig_dict[key], val)
         else:
             orig_dict[key] = val
-
-
-def parse_args(argv):
-    """Parse command line arguments for arithgen-quiz."""
-    parser = argparse.ArgumentParser(
-        prog='arithgen-quiz',
-        description='Quiz mode of arithgen',
-        formatter_class=argparse.ArgumentDefaultsHelpFormatter,
-        add_help=False,
-    )
-    parser.add_argument(
-        '-h', '--help', action='help',
-        help='Show this help message and exit.',
-    )
-    parser.add_argument(
-        '-V', '--version', action='version',
-        version='%(prog)s ' + __version__,
-        help="Show program's version number and exit.",
-    )
-    parser.add_argument(
-        '-d', '--difficulty', type=int, default=3,
-        help='Specify complexity of expressions.',
-    )
-    parser.add_argument(
-        '-F', '--format', default='{expr}',
-        help='Specify expression output format.',
-    )
-    parser.add_argument(
-        '-r', '--strict', action='store_true',
-        help='Only accept answer with an integer or a fraction in the '
-        'form of a/b with gcd(a, b) == 1 and b > 1. By default '
-        'anything accepted by Fraction constructor is OK.',
-    )
-    parser.add_argument(
-        '-s', '--silent', action='store_true',
-        help='Suppress summary information output.',
-    )
-    return parser.parse_args(argv)
 
 
 def parse_config_files():
@@ -125,17 +106,23 @@ def get_valid_user_input(*, prompt='', strict=False):
 def main(argv=None):
     if argv is None:
         argv = sys.argv[1:]
-    args = parse_args(argv)
+    args = docopt(__doc__, argv=argv,
+                  version='arithgen ' + __version__)
+    try:
+        difficulty = int(args['--difficulty'])
+    except ValueError:
+        print('Invalid arguments')
+        return 1
     conf = parse_config_files()
     total_count = 0
     total_correct = 0
     while True:
-        expr, result = generate(difficulty=args.difficulty)
-        print(args.format.format(expr=expr))
+        expr, result = generate(difficulty=difficulty)
+        print(args['--format'].format(expr=expr))
         try:
             user_result = get_valid_user_input(
                 prompt=conf['messages']['prompt'],
-                strict=args.strict,
+                strict=args['--strict'],
             )
         except EOFError:
             print('quit')
@@ -152,7 +139,7 @@ def main(argv=None):
                 user_result=user_result,
             ))
         total_count += 1
-    if not args.silent and total_count:
+    if not args['--silent'] and total_count:
         correct_rate = total_correct / total_count
         print(conf['messages']['summary'].format(
             correct_rate=correct_rate,

@@ -38,7 +38,10 @@ setup(
         'Topic :: Games/Entertainment',
     ],
     packages=find_packages(exclude=['tests*']),
-    install_requires=['PyYAML'],
+    install_requires=[
+        'PyYAML',
+        'docopt',
+    ],
     entry_points={
         'console_scripts': [
             'arithgen = arithgen.cmdline:main',
