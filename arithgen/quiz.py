@@ -20,10 +20,11 @@ Options:
 """
 
 import collections
+import math
 import os
 import re
 import sys
-from fractions import Fraction, gcd
+from fractions import Fraction
 
 import yaml
 from docopt import docopt
@@ -85,7 +86,7 @@ def parse_fraction_strict(string):
     if match:
         left = int(match.group(1))
         right = int(match.group(2))
-        if gcd(left, right) == 1 and right > 1:
+        if math.gcd(left, right) == 1 and right > 1:
             return Fraction(left, right)
     raise ValueError('Format error')
 
