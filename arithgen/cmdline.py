@@ -12,7 +12,6 @@ Options:
                                    expressions. [default: 3]
     -F, --format=<format>          Specify the output format.
                                    [default: {expr} = {result}]
-
 """
 
 import sys

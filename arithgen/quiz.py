@@ -16,7 +16,6 @@ Options:
                                    anything accepted by Fraction
                                    constructor is OK.
     -s, --silent                   Suppress summary information output.
-
 """
 
 import collections
